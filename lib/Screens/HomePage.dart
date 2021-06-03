@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'add_contact.dart';
@@ -58,7 +60,7 @@ class _HomePageState extends State<HomePage> {
                             fit: BoxFit.cover,
                             image: snapshot.value['photoUrl'] == "empty"
                             ? AssetImage("assets/logo.png")
-                            : NetworkImage(snapshot.value['photoUrl'])
+                            : Image.memory(base64Decode(snapshot.value['photoUrl'])).image
                           )
                         ),
                       ),

@@ -88,8 +88,8 @@ class _AddContactState extends State<AddContact> {
   void uploadImage(File file) async{
     final bytes = await file.readAsBytes();
     String convertida = base64Encode(bytes);
-    this._photoUrl = convertida;
-
+    _photoUrl = convertida;
+    print(_photoUrl.substring(0, 10));
   }
 
   @override
@@ -121,7 +121,7 @@ class _AddContactState extends State<AddContact> {
                           fit: BoxFit.cover,
                           image: _photoUrl == "empty"
                           ? AssetImage("assets/logo.png")
-                          : Image.memory(base64Decode(_photoUrl)),
+                          : Image.memory(base64Decode(_photoUrl)).image,
                         )
                       ),
                     ),

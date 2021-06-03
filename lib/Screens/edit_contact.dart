@@ -54,6 +54,7 @@ class _EditContactState extends State<EditContact> {
     super.initState();
     //get contact from firebase
     this.getContact(id);
+    armazenarDados();
   }
 
   getContact(id) async {
@@ -61,30 +62,30 @@ class _EditContactState extends State<EditContact> {
     _databaseReference.child(id).onValue.listen((event) {
       contact = Contact.fromSnapshot(event.snapshot);
 
-      _fnController.text = contact.firstName;
-      _lnController.text = contact.lastName;
-      _poController.text = contact.phone;
-      _emController.text = contact.email;
-      _adController.text = contact.address;
-     _hnController.text = contact.houseNumber;
-     _snController.text = contact.streetNumber;
-     _birthdayController.text = contact.birthday;
+      _fnController.text = contact?.firstName;
+      _lnController.text = contact?.lastName;
+      _poController.text = contact?.phone;
+      _emController.text = contact?.email;
+      _adController.text = contact?.address;
+     _hnController.text = contact?.houseNumber;
+     _snController.text = contact?.streetNumber;
+     _birthdayController.text = contact?.birthday;
 
       setState(() {
-        _firstName = contact.firstName;
-        _lastName = contact.lastName;
-        _phone = contact.phone;
-        _email = contact.email;
-        _address = contact.address;
-        _photoUrl = contact.photoUrl;
-        _houseNumber = contact.houseNumber;
-        _birthday = contact.birthday;
-        _streetNumber = contact.streetNumber;
+        _firstName = contact?.firstName;
+        _lastName = contact?.lastName;
+        _phone = contact?.phone;
+        _email = contact?.email;
+        _address = contact?.address;
+        _photoUrl = contact?.photoUrl;
+        _houseNumber = contact?.houseNumber;
+        _birthday = contact?.birthday;
+        _streetNumber = contact?.streetNumber;
         selectedDate = DateFormat("yyyy-MM-dd - kk:mm").parse(_birthday);
 
         isLoading = false;
       });
-      armazenarDados();
+
     });
   }
 
@@ -176,7 +177,7 @@ class _EditContactState extends State<EditContact> {
                                       fit: BoxFit.cover,
                                       image: _photoUrl == "empty"
                                           ? AssetImage("assets/logo.png")
-                                          : Image.memory(base64Decode(_photoUrl)),
+                                          : Image.memory(base64Decode(_photoUrl)).image,
                                     ))),
                           ),
                         )),

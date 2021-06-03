@@ -120,7 +120,7 @@ class _ViewContactState extends State<ViewContact> {
                         //
                         image: (_contact == null || (_contact.photoUrl == "empty" || _contact.photoUrl == null))
                             ? AssetImage("assets/logo.png")
-                            : Image.memory(base64Decode(_contact.photoUrl)),
+                            : Image.memory(base64Decode(_contact.photoUrl)).image,
                         fit: BoxFit.contain,
                       )),
                   //name
