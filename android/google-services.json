@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "199467388190",
+    "project_id": "listadecontatosmelhorada",
+    "storage_bucket": "listadecontatosmelhorada.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199467388190:android:aaac0a495bf385d3298d0f",
+        "android_client_info": {
+          "package_name": "com.diogoneiss.agenda_de_contatos_melhorada"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "199467388190-0icq4023bbed3vmqh6qlano3p8o3c4f1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQPEMn2H-vdwb5KqQ0RLv3YnSHrz5fmgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "199467388190-0icq4023bbed3vmqh6qlano3p8o3c4f1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
