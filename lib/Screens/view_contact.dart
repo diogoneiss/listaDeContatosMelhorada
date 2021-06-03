@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'edit_contact.dart';
 import '../Model/contact.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 class ViewContact extends StatefulWidget {
 
@@ -20,7 +24,8 @@ class _ViewContactState extends State<ViewContact> {
   _ViewContactState(this.id);
   Contact _contact;
   bool isLoading = false;
-
+  String rua = "";
+  String cidade = "";
   getContact(id) async{
     _databaseReference.child(id).onValue.listen((event){
       setState(() {
@@ -28,6 +33,7 @@ class _ViewContactState extends State<ViewContact> {
       });
     });
   }
+
 
   @override
   void initState(){
@@ -112,9 +118,9 @@ class _ViewContactState extends State<ViewContact> {
                       height: 200.0,
                       child: Image(
                         //
-                        image: _contact.photoUrl == "empty"
+                        image: (_contact == null || (_contact.photoUrl == "empty" || _contact.photoUrl == null))
                             ? AssetImage("assets/logo.png")
-                            : NetworkImage(_contact.photoUrl),
+                            : Image.memory(base64Decode(_contact.photoUrl)),
                         fit: BoxFit.contain,
                       )),
                   //name
@@ -135,6 +141,26 @@ class _ViewContactState extends State<ViewContact> {
                             ),
                           ],
                         )),
+                  ),
+                  Card(elevation: 2.0,
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(50, 20, 50, 50),
+                    child: Column(
+
+
+                      children: <Widget>[
+                        Text(
+                          "Aniversário salvo:",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                        Text(
+                          "${_contact.birthday}",
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+
+                      ],
+                    ),
+                    )
                   ),
                   // phone
                   Card(
@@ -241,6 +267,23 @@ class _ViewContactState extends State<ViewContact> {
               ),
       ),
     );
+  }
+  Future<http.Response> pesquisarCep(String cep) async {
+    return http.get('https://viacep.com.br/ws/$cep/json/');
+  }
+  void armazenarDados() async {
+    //sair se o cep estiver vazio
+    if (_contact.address == "") return;
+
+    http.Response jsonCru = await pesquisarCep(_contact.address);
+
+    //erro na api
+    if (jsonCru.statusCode != 200) return;
+
+    Map<String, dynamic> mapa = jsonDecode(jsonCru.body);
+
+    rua = mapa['logradouro'];
+    cidade = mapa['localidade'];
   }
 
 }

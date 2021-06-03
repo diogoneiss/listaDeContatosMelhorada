@@ -28,6 +28,7 @@ dependencies:
   image_picker:
   firebase_core:
   firebase_storage:
+  intl:
   url_launcher: ^4.1.0+1
 
 dev_dependencies:

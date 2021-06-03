@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
@@ -5,7 +7,8 @@ import '../model/contact.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 class EditContact extends StatefulWidget {
   final String id;
   EditContact(this.id);
@@ -23,7 +26,12 @@ class _EditContactState extends State<EditContact> {
   String _address = '';
   String _email = '';
   String _photoUrl;
-
+  String _houseNumber = '';
+  String _streetNumber = '';
+  String _birthday = '';
+  String rua = "";
+  String cidade = "";
+  DateTime selectedDate = DateTime.now();
   //handle text editing controller
 
   TextEditingController _fnController = TextEditingController();
@@ -31,6 +39,10 @@ class _EditContactState extends State<EditContact> {
   TextEditingController _poController = TextEditingController();
   TextEditingController _emController = TextEditingController();
   TextEditingController _adController = TextEditingController();
+  TextEditingController _hnController = TextEditingController();
+  TextEditingController _snController = TextEditingController();
+  TextEditingController _birthdayController = TextEditingController();
+
 
   bool isLoading = true;
 
@@ -54,6 +66,9 @@ class _EditContactState extends State<EditContact> {
       _poController.text = contact.phone;
       _emController.text = contact.email;
       _adController.text = contact.address;
+     _hnController.text = contact.houseNumber;
+     _snController.text = contact.streetNumber;
+     _birthdayController.text = contact.birthday;
 
       setState(() {
         _firstName = contact.firstName;
@@ -62,9 +77,14 @@ class _EditContactState extends State<EditContact> {
         _email = contact.email;
         _address = contact.address;
         _photoUrl = contact.photoUrl;
+        _houseNumber = contact.houseNumber;
+        _birthday = contact.birthday;
+        _streetNumber = contact.streetNumber;
+        selectedDate = DateFormat("yyyy-MM-dd - kk:mm").parse(_birthday);
 
         isLoading = false;
       });
+      armazenarDados();
     });
   }
 
@@ -75,8 +95,9 @@ class _EditContactState extends State<EditContact> {
         _phone.isNotEmpty &&
         _email.isNotEmpty &&
         _address.isNotEmpty) {
+      _birthday = DateFormat('yyyy-MM-dd - kk:mm').format(selectedDate);
       Contact contact = Contact.withId(this.id, this._firstName, this._lastName,
-          this._phone, this._email, this._address, this._photoUrl);
+          this._phone, this._email, this._address, this._photoUrl, this._streetNumber, this._houseNumber, this._birthday);
 
       await _databaseReference.child(id).set(contact.toJson());
       navigateToLastScreen(context);
@@ -104,23 +125,18 @@ class _EditContactState extends State<EditContact> {
   Future pickImage() async {
     File file = await ImagePicker.pickImage(
         source: ImageSource.gallery, maxHeight: 200.0, maxWidth: 200.0);
-    String fileName = basename(file.path);
-    uploadImage(file, fileName);
+
+    uploadImage(file);
   }
 
   //upload image
 
-  void uploadImage(File file, String fileName) async {
-    var storageReference =
-        FirebaseStorage.instance.ref().child(fileName);
-    //upload image
-    storageReference.putFile(file).then((firebaseFile) async {
-      var downloadUrl = await firebaseFile.ref.getDownloadURL();
+  void uploadImage(File file) async {
+    final bytes = await file.readAsBytes();
+    String convertida = base64Encode(bytes);
 
-      setState(() {
-        _photoUrl = downloadUrl;
-      });
-    });
+    this._photoUrl = convertida;
+
   }
 
   navigateToLastScreen(BuildContext context) {
@@ -160,7 +176,7 @@ class _EditContactState extends State<EditContact> {
                                       fit: BoxFit.cover,
                                       image: _photoUrl == "empty"
                                           ? AssetImage("assets/logo.png")
-                                          : NetworkImage(_photoUrl),
+                                          : Image.memory(base64Decode(_photoUrl)),
                                     ))),
                           ),
                         )),
@@ -242,6 +258,7 @@ class _EditContactState extends State<EditContact> {
                           setState(() {
                             _address = value;
                           });
+                          armazenarDados();
                         },
                         controller: _adController,
                         decoration: InputDecoration(
@@ -251,6 +268,43 @@ class _EditContactState extends State<EditContact> {
                         ),
                       ),
                     ),
+                    Container(
+                        margin: EdgeInsets.only(top:10.0),
+                        child: Text("Sua rua: ${rua}\nSua cidade: ${cidade}",
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),)
+                    ),
+
+                    Container(
+                      padding: EdgeInsets.fromLTRB(50, 20, 50, 50),
+                      child: Column(
+
+
+                        children: <Widget>[
+                          Text(
+                            "Aniversário salvo:",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Text(
+                            "${selectedDate.toLocal()}".split(' ')[0],
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(
+                            height: 10.0,
+                          ),
+                          RaisedButton(
+                            padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                            onPressed: () => _selectDate(context), // Refer step 3
+                            child: Text(
+                              'Editar aniversário',
+                              style:
+                              TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold),
+                            ),
+                            color: Colors.greenAccent,
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // update button
                     Container(
                       padding: EdgeInsets.fromLTRB(50, 23, 50, 20),
@@ -261,7 +315,7 @@ class _EditContactState extends State<EditContact> {
                         },
                         color: Colors.black,
                         child: Text(
-                          "Update",
+                          "Atualizar",
                           style: TextStyle(
                             fontSize: 20.0,
                             color: Colors.white,
@@ -277,5 +331,37 @@ class _EditContactState extends State<EditContact> {
               ),
       ),
     );
+  }
+  _selectDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate, // Refer step 1
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2022),
+      initialDatePickerMode: DatePickerMode.year,
+
+    );
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+      });
+  }
+
+  Future<http.Response> pesquisarCep(String cep) async {
+    return http.get('https://viacep.com.br/ws/$cep/json/');
+  }
+  void armazenarDados() async {
+    //sair se o cep estiver vazio
+    if (_address == "") return;
+
+    http.Response jsonCru = await pesquisarCep(this._address);
+
+    //erro na api
+    if (jsonCru.statusCode != 200) return;
+
+    Map<String, dynamic> mapa = jsonDecode(jsonCru.body);
+
+    rua = mapa['logradouro'];
+    cidade = mapa['localidade'];
   }
 }
